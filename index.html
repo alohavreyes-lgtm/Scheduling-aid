@@ -57,57 +57,42 @@
 </table>
 
 <script>
-
 const API_URL = "https://script.google.com/macros/s/AKfycbzYWIfcUbKWh4sQzLnxA5lUpfDdXwd7-5upZSh3ysWYkVyrEWFWia238mwSk0ntyOMoqA/exec";
-
-let globalData = [];
 
 fetch(API_URL)
   .then(res => res.json())
   .then(data => {
-    globalData = data;
-    renderTable(data);
-  });
+    const thead = document.getElementById("thead");
+    const tbody = document.getElementById("tbody");
 
-function renderTable(data) {
-  const thead = document.getElementById("thead");
-  const tbody = document.getElementById("tbody");
+    if (data.length === 0) return;
 
-  thead.innerHTML = "";
-  tbody.innerHTML = "";
+    const headers = Object.keys(data[0]);
 
-  if (data.length === 0) return;
+    let headerRow = "<tr>";
+    headers.forEach(h => headerRow += `<th>${h}</th>`);
+    headerRow += "</tr>";
+    thead.innerHTML = headerRow;
 
-  const headers = Object.keys(data[0]);
+    data.forEach((row, rowIndex) => {
+      let tr = document.createElement("tr");
 
-  // Create header
-  let headerRow = "<tr>";
-  headers.forEach(h => headerRow += `<th>${h}</th>`);
-  headerRow += "</tr>";
-  thead.innerHTML = headerRow;
+      headers.forEach(h => {
+        let td = document.createElement("td");
+        td.innerText = row[h] || "";
 
-  // Create rows
-  data.forEach((row, rowIndex) => {
-    let tr = document.createElement("tr");
+        td.onclick = () => editCell(td, h, rowIndex);
 
-    headers.forEach(h => {
-      let td = document.createElement("td");
-      td.innerText = row[h] || "";
+        tr.appendChild(td);
+      });
 
-      td.onclick = () => editCell(td, h, rowIndex);
-
-      tr.appendChild(td);
+      tbody.appendChild(tr);
     });
-
-    tbody.appendChild(tr);
   });
-}
 
 function editCell(td, key, rowIndex) {
-  const oldValue = td.innerText;
-
   const input = document.createElement("input");
-  input.value = oldValue;
+  input.value = td.innerText;
 
   td.innerHTML = "";
   td.appendChild(input);
@@ -117,20 +102,15 @@ function editCell(td, key, rowIndex) {
     const newValue = input.value;
     td.innerText = newValue;
 
-    updateData(rowIndex, key, newValue);
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        rowIndex: rowIndex,
+        [key]: newValue
+      })
+    });
   };
 }
-
-function updateData(rowIndex, key, value) {
-  fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      rowIndex: rowIndex,
-      [key]: value
-    })
-  });
-}
-
 </script>
 
 </body>
