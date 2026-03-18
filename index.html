@@ -51,10 +51,9 @@
 <script>
 const SHEET_ID = "1OnpOk-pB0GmYhLLhLBXcMQx35E7-QxkplTi873spLG4";
 const SHEET_TAB = "1";
+const API_URL = "https://script.google.com/macros/s/AKfycbzYWIfcUbKWh4sQzLnxA5lUpfDdXwd7-5upZSh3ysWYkVyrEWFWia238mwSk0ntyOMoqA/exec";
 
-const url = `https://opensheet.elk.sh/${SHEET_ID}/${SHEET_TAB}`;
-
-fetch(url)
+fetch(API_URL)
   .then(res => res.json())
   .then(data => {
     const thead = document.getElementById("thead");
@@ -66,9 +65,14 @@ fetch(url)
 
     // Create headers
     let headerRow = "<tr>";
-    headers.forEach(h => headerRow += `<th>${h}</th>`);
-    headerRow += "</tr>";
-    thead.innerHTML = headerRow;
+    headers.forEach(h => {
+  let td = document.createElement("td");
+  td.innerText = row[h] || "";
+
+  td.onclick = () => editCell(td, h, i);
+
+  tr.appendChild(td);
+});
 
     const today = new Date().toISOString().split("T")[0];
 
@@ -88,7 +92,32 @@ fetch(url)
     });
   });
 </script>
+function editCell(td, key, rowIndex) {
+  const oldValue = td.innerText;
+  const input = document.createElement("input");
 
+  input.value = oldValue;
+  td.innerHTML = "";
+  td.appendChild(input);
+  input.focus();
+
+  input.onblur = () => {
+    const newValue = input.value;
+    td.innerText = newValue;
+
+    updateData(rowIndex, key, newValue);
+  };
+}
+
+function updateData(rowIndex, key, value) {
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      rowIndex: rowIndex,
+      [key]: value
+    })
+  });
+}
 </body>
 </html>
 <!-- update -->
