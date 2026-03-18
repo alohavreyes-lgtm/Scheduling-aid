@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Schedule Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f6f9;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th {
+      background: black;
+      color: white;
+      padding: 10px;
+    }
+
+    td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .today {
+      background: #d4edda;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>📅 Schedule Dashboard</h1>
+
+<table>
+  <thead id="thead"></thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<script>
+const SHEET_ID = "1OnpOk-pB0GmYhLLhLBXcMQx35E7-QxkplTi873spLG4";
+const SHEET_TAB = "1";
+
+const url = `https://opensheet.elk.sh/${SHEET_ID}/${SHEET_TAB}`;
+
+fetch(url)
+  .then(res => res.json())
+  .then(data => {
+    const thead = document.getElementById("thead");
+    const tbody = document.getElementById("tbody");
+
+    if (data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+
+    // Create headers
+    let headerRow = "<tr>";
+    headers.forEach(h => headerRow += `<th>${h}</th>`);
+    headerRow += "</tr>";
+    thead.innerHTML = headerRow;
+
+    const today = new Date().toISOString().split("T")[0];
+
+    // Create rows
+    data.forEach(row => {
+      let tr = document.createElement("tr");
+
+      if (JSON.stringify(row).includes(today)) {
+        tr.classList.add("today");
+      }
+
+      headers.forEach(h => {
+        tr.innerHTML += `<td>${row[h] || ""}</td>`;
+      });
+
+      tbody.appendChild(tr);
+    });
+  });
+</script>
+
+</body>
+</html>
