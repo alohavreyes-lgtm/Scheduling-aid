@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Schedule Dashboard</title>
+  <title>Scheduling System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -31,17 +31,25 @@
       padding: 10px;
       text-align: center;
       border-bottom: 1px solid #ddd;
+      cursor: pointer;
     }
 
-    .today {
-      background: #d4edda;
+    tr:hover {
+      background: #f1f1f1;
+    }
+
+    input {
+      width: 100%;
+      border: none;
+      outline: none;
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
 
-<h1>📅 Schedule Dashboard</h1>
+<h1>📅 Scheduling System</h1>
 
 <table>
   <thead id="thead"></thead>
@@ -49,54 +57,58 @@
 </table>
 
 <script>
-const SHEET_ID = "1OnpOk-pB0GmYhLLhLBXcMQx35E7-QxkplTi873spLG4";
-const SHEET_TAB = "1";
+
 const API_URL = "https://script.google.com/macros/s/AKfycbzYWIfcUbKWh4sQzLnxA5lUpfDdXwd7-5upZSh3ysWYkVyrEWFWia238mwSk0ntyOMoqA/exec";
+
+let globalData = [];
 
 fetch(API_URL)
   .then(res => res.json())
   .then(data => {
-    const thead = document.getElementById("thead");
-    const tbody = document.getElementById("tbody");
-
-    if (data.length === 0) return;
-
-    const headers = Object.keys(data[0]);
-
-    // Create headers
-    let headerRow = "<tr>";
-    headers.forEach(h => {
-  let td = document.createElement("td");
-  td.innerText = row[h] || "";
-
-  td.onclick = () => editCell(td, h, i);
-
-  tr.appendChild(td);
-});
-
-    const today = new Date().toISOString().split("T")[0];
-
-    // Create rows
-    data.forEach(row => {
-      let tr = document.createElement("tr");
-
-      if (JSON.stringify(row).includes(today)) {
-        tr.classList.add("today");
-      }
-
-      headers.forEach(h => {
-        tr.innerHTML += `<td>${row[h] || ""}</td>`;
-      });
-
-      tbody.appendChild(tr);
-    });
+    globalData = data;
+    renderTable(data);
   });
-</script>
+
+function renderTable(data) {
+  const thead = document.getElementById("thead");
+  const tbody = document.getElementById("tbody");
+
+  thead.innerHTML = "";
+  tbody.innerHTML = "";
+
+  if (data.length === 0) return;
+
+  const headers = Object.keys(data[0]);
+
+  // Create header
+  let headerRow = "<tr>";
+  headers.forEach(h => headerRow += `<th>${h}</th>`);
+  headerRow += "</tr>";
+  thead.innerHTML = headerRow;
+
+  // Create rows
+  data.forEach((row, rowIndex) => {
+    let tr = document.createElement("tr");
+
+    headers.forEach(h => {
+      let td = document.createElement("td");
+      td.innerText = row[h] || "";
+
+      td.onclick = () => editCell(td, h, rowIndex);
+
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
 function editCell(td, key, rowIndex) {
   const oldValue = td.innerText;
-  const input = document.createElement("input");
 
+  const input = document.createElement("input");
   input.value = oldValue;
+
   td.innerHTML = "";
   td.appendChild(input);
   input.focus();
@@ -118,6 +130,8 @@ function updateData(rowIndex, key, value) {
     })
   });
 }
+
+</script>
+
 </body>
 </html>
-<!-- update -->
